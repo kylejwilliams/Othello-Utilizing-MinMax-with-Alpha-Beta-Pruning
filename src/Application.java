@@ -27,7 +27,12 @@ public class Application extends JPanel {
 		g2d.fillRect(0, 600, 600, 200);
 		
 		g2d.setColor(Color.WHITE);
-		g2d.fillOval(0, 0, 100, 100);
+		g2d.fillOval(200, 200, 100, 100);
+		g2d.fillOval(300, 300, 100, 100);
+		
+		g2d.setColor(Color.BLACK);
+		g2d.fillOval(200, 300, 100, 100);
+		g2d.fillOval(300, 200, 100, 100);
 	}
 
     public static void main(String[] args){
