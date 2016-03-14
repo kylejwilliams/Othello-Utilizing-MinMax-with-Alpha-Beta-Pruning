@@ -1,12 +1,11 @@
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintStream;
 import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -80,13 +79,14 @@ public class Game {
 	
 	public void initBoard(JPanel panel) {
 		GridBagConstraints gbc;
-		Border border = new LineBorder(Color.BLACK, 1);
+		Border border = new LineBorder(Color.YELLOW, 1);
 		
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
 				gameboard[i][j] = new JButton();
 				gameboard[i][j].setBackground(forestGreen);
 				gameboard[i][j].setBorder(border);
+				gameboard[i][j].setPreferredSize(new Dimension(100, 100));
 				gbc = new GridBagConstraints(); 
 				gbc.fill = GridBagConstraints.BOTH;
 				//gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -134,7 +134,30 @@ public class Game {
 		return response;
 	}
 	
-	public boolean isValidMove(int posX, int posY) {
-		return (gameboard[posX][posY].getBackground() == forestGreen);
+	public boolean isValidMove(int posX, int posY, int player) {
+		Color playerColor;
+		Color opposingColor;
+		
+//		if (player == 0) { // first player
+//			playerColor = Color.BLACK;
+//			opposingColor = Color.WHITE;
+//		} else {
+//			playerColor = Color.WHITE;
+//			opposingColor = Color.BLACK;
+//		}
+//		
+//		if (gameboard[posX][posY].getBackground() == forestGreen) {
+//			for (int i = 0; i < )
+//			if (gameboard[posX+1][posY].getBackground() == opposingColor) {
+//				
+//			}
+//		}
+		
+		return false;
+	}
+	
+	public void flipPieces(JButton[][] gameboard, int xPos, int yPos, int player) {
+		// change selected position's color
+		// 
 	}
 }

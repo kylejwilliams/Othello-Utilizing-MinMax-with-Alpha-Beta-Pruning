@@ -1,5 +1,4 @@
 
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.GridBagLayout;
 import javax.swing.JFrame;
@@ -34,7 +33,7 @@ public class Application {
 				frame.getContentPane().add(app.getUI());
 				frame.setLocationByPlatform(true);
 				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-				frame.setPreferredSize(new Dimension(800, 600));
+				//frame.setPreferredSize(new Dimension(800, 600));
 				frame.setMinimumSize(frame.getSize());
 				frame.pack();
 				
