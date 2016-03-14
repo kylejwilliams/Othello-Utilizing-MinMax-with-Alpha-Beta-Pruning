@@ -1,40 +1,54 @@
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Ellipse2D;
-
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.GridBagLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
-public class Application extends JPanel {
-	Gameboard gb = new Gameboard();
+public class Application {
+	private JPanel panel;
+	Game g = new Game();
 	
-	@Override
-	public void paint(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
+	public Application() {
+		panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
 		
-		// draw gameboard here
-		gb.draw(g2d);
-		
-		g2d.setColor(Color.GRAY);
-		g2d.fillRect(0, 600, 600, 200);
-		
-		g2d.setColor(Color.WHITE);
-		g2d.fillOval(200, 200, 100, 100);
-		g2d.fillOval(300, 300, 100, 100);
-		
-		g2d.setColor(Color.BLACK);
-		g2d.fillOval(200, 300, 100, 100);
-		g2d.fillOval(300, 200, 100, 100);
+		g.initConsole(panel);
+		g.initBoard(panel);
 	}
+	
+	public JPanel getUI() {
+		return panel;
+	}
+	
 
-    public static void main(String[] args){
-       JFrame frame = new JFrame("Othello");
-       frame.add(new Application());
-       frame.setSize(600, 800);
-       frame.setVisible(true);
-       frame.setResizable(false);
-       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
+	
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				JFrame frame = new JFrame("Othello");
+				Application app = new Application();
+				frame.getContentPane().add(app.getUI());
+				frame.setLocationByPlatform(true);
+				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				frame.setPreferredSize(new Dimension(800, 600));
+				frame.setMinimumSize(frame.getSize());
+				frame.pack();
+				
+				try {
+					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				frame.setVisible(true);
+				
+				app.g.run(); 
+			}
+		});
+	}
+	
 }
