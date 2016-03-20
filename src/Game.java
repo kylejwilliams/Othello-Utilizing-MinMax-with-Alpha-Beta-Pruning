@@ -45,28 +45,30 @@ public class Game {
 	public void run() {
 		
 		System.out.println("OTHELLO");
-		System.out.println();
 		System.out.println("On your turn, make a move by clicking on one of "
 				+ "the squares");
 		
 		int playOrder = getPlayOrder();
 		
-		for (int i = 0; i < SIZE; i++) {
-			for (int j = 0; j < SIZE; j++) {
+		for (int j = 0; j < SIZE; j++) {
+			for (int i = 0; i < SIZE; i++) {
 				int x = i;
 				int y = j;
-				gameboard[i][j].addActionListener(new ActionListener() {
+				gameboard[y][x].addActionListener(new ActionListener() {
 					
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						if (isValidMove(x, y) && isFirstPlayersTurn) {
-							gameboard[x][y].setBackground(Color.BLACK);
+						//TODO implement flipping pieces
+						if (isValidMove(x, y, 0) && isFirstPlayersTurn) {
+							gameboard[y][x].setBackground(Color.BLACK);
+							//flipPieces(gameboard, x, y, 0);
 							isFirstPlayersTurn = false;
 							System.out.println("Player 1 made a move at " 
-									+ "(" + x + ", " + y + ")");
+									+ "(" + (x+1) + ", " + (y+1) + ")");
 						}
-						else if (isValidMove(x, y) && !isFirstPlayersTurn) {
-							gameboard[x][y].setBackground(Color.WHITE);
+						else if (isValidMove(x, y, 1) && !isFirstPlayersTurn) {
+							gameboard[y][x].setBackground(Color.WHITE);
+							//flipPieces(gameboard, x, y, 1);
 							isFirstPlayersTurn = true;
 							System.out.println("player 2 made a move at " 
 									+ "(" + x + ", " + y + ")");
@@ -79,14 +81,17 @@ public class Game {
 	
 	public void initBoard(JPanel panel) {
 		GridBagConstraints gbc;
-		Border border = new LineBorder(Color.YELLOW, 1);
+		Border border = new LineBorder(Color.RED, 1);
 		
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
-				gameboard[i][j] = new JButton();
-				gameboard[i][j].setBackground(forestGreen);
-				gameboard[i][j].setBorder(border);
-				gameboard[i][j].setPreferredSize(new Dimension(100, 100));
+				int x = j;
+				int y = i;
+				
+				gameboard[y][x] = new JButton();
+				gameboard[y][x].setBackground(forestGreen);
+				gameboard[y][x].setBorder(border);
+				gameboard[y][x].setPreferredSize(new Dimension(100, 100));
 				gbc = new GridBagConstraints(); 
 				gbc.fill = GridBagConstraints.BOTH;
 				//gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -95,7 +100,7 @@ public class Game {
 				gbc.weightx = 1.0;
 				gbc.weighty = 1.0;
 				
-				panel.add(gameboard[i][j], gbc);
+				panel.add(gameboard[y][x], gbc);
 			}
 		}
 		
@@ -138,26 +143,118 @@ public class Game {
 		Color playerColor;
 		Color opposingColor;
 		
-//		if (player == 0) { // first player
-//			playerColor = Color.BLACK;
-//			opposingColor = Color.WHITE;
-//		} else {
-//			playerColor = Color.WHITE;
-//			opposingColor = Color.BLACK;
-//		}
-//		
-//		if (gameboard[posX][posY].getBackground() == forestGreen) {
-//			for (int i = 0; i < )
-//			if (gameboard[posX+1][posY].getBackground() == opposingColor) {
-//				
-//			}
-//		}
+		// set color
+		if (player == 0) { // first player
+			playerColor = Color.BLACK;
+			opposingColor = Color.WHITE;
+		} else {
+			playerColor = Color.WHITE;
+			opposingColor = Color.BLACK;
+		}
+		
+		
+		if (gameboard[posY][posX].getBackground() == forestGreen) {	
+			// north
+			if (posY > 0 && 
+					gameboard[posY-1][posX].getBackground() == opposingColor) {
+				for (int i = posY-2; i > 0; i--) {
+					if (gameboard[i][posX].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[i][posX].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+			// northwest
+			if (posY > 0 && posX > 0 &&
+					gameboard[posY-1][posX-1].getBackground() == opposingColor) {
+				for (int i = posY-2, j = posX-2; i > 0 && j > 0; i--, j--) {
+					if (gameboard[i][j].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[i][j].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+			// northeast
+			if (posY > 0 && posX < SIZE - 1 &&
+					gameboard[posY-1][posX+1].getBackground() == opposingColor) {
+				for (int i = posY-2, j = posX+2; i > 0 && j < SIZE - 1; i--, j++) {
+					if (gameboard[i][j].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[i][j].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+//			// south
+			if (posY < SIZE - 1 &&
+					gameboard[posY+1][posX].getBackground() == opposingColor) {
+				for (int i = posY+2; i < SIZE - 1; i++) {
+					if (gameboard[i][posX].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[i][posX].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+//			// southwest
+			if (posY < SIZE - 1 && posX > 0 &&
+					gameboard[posY+1][posX-1].getBackground() == opposingColor) {
+				for (int i = posY+2, j = posX-2; i < SIZE - 1 && j > 0; i++, j--) {
+					if (gameboard[i][j].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[i][j].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+//			// southeast
+			if (posY < SIZE - 1 && posX < SIZE - 1 &&
+					gameboard[posY+1][posX+1].getBackground() == opposingColor) {
+				for (int i = posY+2, j = posX+2; i < SIZE - 1 && j < SIZE - 1; i++, j++) {
+					if (gameboard[i][j].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[i][j].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+//			// west
+			if (posX > 0 &&
+					gameboard[posY][posX-1].getBackground() == opposingColor) {
+				for (int i = posX-2; i > 0; i--) {
+					if (gameboard[posY][i].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[posY][i].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+//			// east
+			if (posX < SIZE - 1 &&
+					gameboard[posY][posX+1].getBackground() == opposingColor) {
+				for (int i = posX+2; i < SIZE - 1; i++) {
+					if (gameboard[posY][i].getBackground() == forestGreen) {
+						break;
+					}
+					else if (gameboard[posY][i].getBackground() == playerColor) {
+						return true;
+					}
+				}
+			}
+		}
 		
 		return false;
 	}
 	
-	public void flipPieces(JButton[][] gameboard, int xPos, int yPos, int player) {
-		// change selected position's color
-		// 
+	public void flipPieces(JButton[][] gameboard, int posX, int posY, int player) {
 	}
 }

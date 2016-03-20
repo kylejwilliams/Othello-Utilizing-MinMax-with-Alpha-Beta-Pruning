@@ -21,8 +21,6 @@ public class Application {
 		return panel;
 	}
 	
-
-	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			
@@ -49,5 +47,5 @@ public class Application {
 			}
 		});
 	}
-	
+
 }
