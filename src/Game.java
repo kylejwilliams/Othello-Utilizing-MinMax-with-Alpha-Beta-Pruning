@@ -5,6 +5,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintStream;
+import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -22,6 +24,7 @@ public class Game {
 	public Color forestGreen;
 	public boolean isFirstPlayersTurn;
 	private final int SIZE = 6; // 6x6 board
+	public ArrayList[] flippedPieces;
 	
 	public Game() {
 		gameboard = new JButton[SIZE][SIZE];
@@ -256,5 +259,18 @@ public class Game {
 	}
 	
 	public void flipPieces(JButton[][] gameboard, int posX, int posY, int player) {
+		Color playerColor;
+		Color opposingColor;
+		if (player == 0) {
+			playerColor = Color.BLACK;
+			opposingColor = Color.WHITE;
+		}
+		else if (player == 1) {
+			playerColor = Color.WHITE;
+			opposingColor = Color.BLACK;
+		}
+		
+		// flip north pieces
+		
 	}
 }
