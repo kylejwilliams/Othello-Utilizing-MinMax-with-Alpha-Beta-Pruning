@@ -24,12 +24,19 @@ public class Game {
 	public Color forestGreen;
 	public boolean isFirstPlayersTurn;
 	private final int SIZE = 6; // 6x6 board
-	public ArrayList[] flippedPieces;
+	public ArrayList<Cardinals> validDirections;
+	public int playerOne;
+	public int playerTwo;
+	
+	public enum Cardinals {
+		NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST
+	}
 	
 	public Game() {
 		gameboard = new JButton[SIZE][SIZE];
 		gameOutput = new JTextArea(2, 50);
 		gameOutput.setEditable(false);
+		validDirections = new ArrayList<>();
 		
 		isFirstPlayersTurn = true;
 		forestGreen = new Color(34, 139, 34);
@@ -50,31 +57,44 @@ public class Game {
 		System.out.println("OTHELLO");
 		System.out.println("On your turn, make a move by clicking on one of "
 				+ "the squares");
+
+		if (getPlayOrder() == 0) {
+			playerOne = 0;
+			playerTwo = 1;
+		}
+		else {
+			playerOne = 1;
+			playerTwo = 0;
+		}
 		
-		int playOrder = getPlayOrder();
-		
-		for (int j = 0; j < SIZE; j++) {
-			for (int i = 0; i < SIZE; i++) {
-				int x = i;
-				int y = j;
-				gameboard[y][x].addActionListener(new ActionListener() {
-					
+		for (int i = 0; i < SIZE; i++) {
+			for (int j = 0; j < SIZE; j++) {
+				int y = i;
+				int x = j;
+				gameboard[i][j].addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						//TODO implement flipping pieces
-						if (isValidMove(x, y, 0) && isFirstPlayersTurn) {
-							gameboard[y][x].setBackground(Color.BLACK);
-							//flipPieces(gameboard, x, y, 0);
+						if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
+							flipPieces(x, y, playerOne);
 							isFirstPlayersTurn = false;
-							System.out.println("Player 1 made a move at " 
-									+ "(" + (x+1) + ", " + (y+1) + ")");
 						}
-						else if (isValidMove(x, y, 1) && !isFirstPlayersTurn) {
-							gameboard[y][x].setBackground(Color.WHITE);
-							//flipPieces(gameboard, x, y, 1);
+						else if (isValidMove(x, y, playerTwo) && !isFirstPlayersTurn) {
+							flipPieces(x, y, playerTwo);
 							isFirstPlayersTurn = true;
-							System.out.println("player 2 made a move at " 
-									+ "(" + x + ", " + y + ")");
+						}
+						else if (isGameWon()) {
+							int playerOneScore = 0;
+							for (int i = 0; i < SIZE; i++) {
+								for (int j = 0; j < SIZE; j++) {
+									if (gameboard[i][j].getBackground() == Color.BLACK) {
+										playerOneScore++;
+									}
+								}
+							}
+							if (playerOneScore > (SIZE*SIZE - playerOneScore)) 
+								System.out.println("Player 1 wins, " + playerOneScore + " to " + (SIZE*SIZE - playerOneScore));
+							else
+								System.out.println("Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore);
 						}
 					}
 				});
@@ -145,6 +165,7 @@ public class Game {
 	public boolean isValidMove(int posX, int posY, int player) {
 		Color playerColor;
 		Color opposingColor;
+		boolean validMove = false;
 		
 		// set color
 		if (player == 0) { // first player
@@ -160,117 +181,221 @@ public class Game {
 			// north
 			if (posY > 0 && 
 					gameboard[posY-1][posX].getBackground() == opposingColor) {
-				for (int i = posY-2; i > 0; i--) {
+				for (int i = posY-2; i >= 0; i--) {
 					if (gameboard[i][posX].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[i][posX].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.NORTH);
+						validMove = true;
+						break;
 					}
 				}
 			}
 			// northwest
 			if (posY > 0 && posX > 0 &&
 					gameboard[posY-1][posX-1].getBackground() == opposingColor) {
-				for (int i = posY-2, j = posX-2; i > 0 && j > 0; i--, j--) {
+				for (int i = posY-2, j = posX-2; i >= 0 && j >= 0; i--, j--) {
+					
 					if (gameboard[i][j].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[i][j].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.NORTHWEST);
+						validMove = true;
+						break;
 					}
 				}
 			}
 			// northeast
 			if (posY > 0 && posX < SIZE - 1 &&
 					gameboard[posY-1][posX+1].getBackground() == opposingColor) {
-				for (int i = posY-2, j = posX+2; i > 0 && j < SIZE - 1; i--, j++) {
+				for (int i = posY-2, j = posX+2; i >= 0 && j < SIZE; i--, j++) {
+					
 					if (gameboard[i][j].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[i][j].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.NORTHEAST);
+						validMove = true;
+						break;
 					}
 				}
 			}
-//			// south
+			// south
 			if (posY < SIZE - 1 &&
 					gameboard[posY+1][posX].getBackground() == opposingColor) {
-				for (int i = posY+2; i < SIZE - 1; i++) {
+				for (int i = posY+2; i < SIZE; i++) {
 					if (gameboard[i][posX].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[i][posX].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.SOUTH);
+						validMove = true;
+						break;
 					}
 				}
 			}
-//			// southwest
+			// southwest
 			if (posY < SIZE - 1 && posX > 0 &&
 					gameboard[posY+1][posX-1].getBackground() == opposingColor) {
-				for (int i = posY+2, j = posX-2; i < SIZE - 1 && j > 0; i++, j--) {
+				for (int i = posY+2, j = posX-2; i < SIZE && j >= 0; i++, j--) {
 					if (gameboard[i][j].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[i][j].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.SOUTHWEST);
+						validMove = true;
+						break;
 					}
 				}
 			}
-//			// southeast
+			// southeast
 			if (posY < SIZE - 1 && posX < SIZE - 1 &&
 					gameboard[posY+1][posX+1].getBackground() == opposingColor) {
-				for (int i = posY+2, j = posX+2; i < SIZE - 1 && j < SIZE - 1; i++, j++) {
+				for (int i = posY+2, j = posX+2; i < SIZE && j < SIZE - 1; i++, j++) {
 					if (gameboard[i][j].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[i][j].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.SOUTHEAST);
+						validMove = true;
+						break;
 					}
 				}
 			}
-//			// west
+			// west
 			if (posX > 0 &&
 					gameboard[posY][posX-1].getBackground() == opposingColor) {
-				for (int i = posX-2; i > 0; i--) {
+				for (int i = posX-2; i >= 0; i--) {
+					
 					if (gameboard[posY][i].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[posY][i].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.WEST);
+						validMove = true;
+						break;
 					}
 				}
 			}
-//			// east
+			// east
 			if (posX < SIZE - 1 &&
 					gameboard[posY][posX+1].getBackground() == opposingColor) {
-				for (int i = posX+2; i < SIZE - 1; i++) {
+				for (int i = posX+2; i < SIZE; i++) {
 					if (gameboard[posY][i].getBackground() == forestGreen) {
 						break;
 					}
 					else if (gameboard[posY][i].getBackground() == playerColor) {
-						return true;
+						validDirections.add(Cardinals.EAST);
+						validMove = true;
+						break;
 					}
 				}
 			}
 		}
-		
-		return false;
+		return validMove;
 	}
 	
-	public void flipPieces(JButton[][] gameboard, int posX, int posY, int player) {
-		Color playerColor;
-		Color opposingColor;
+	public void flipPieces(int x, int y, int player) {
+		Color playerColor = null;
+		Color opposingColor = null;
+		
 		if (player == 0) {
-			playerColor = Color.BLACK;
+			playerColor = Color.BLACK; 
 			opposingColor = Color.WHITE;
 		}
-		else if (player == 1) {
-			playerColor = Color.WHITE;
+		if (player == 1) {
+			playerColor = Color.WHITE; 
 			opposingColor = Color.BLACK;
 		}
 		
-		// flip north pieces
+		JButton currPiece;
 		
+		for (Cardinals dir : validDirections) {
+			currPiece = gameboard[y][x];
+			currPiece.setBackground(playerColor);
+			int i = 0;
+			switch (dir) {
+			case NORTH:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y - i][x];
+					
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case NORTHEAST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y - i][x+i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case EAST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y][x+i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case SOUTHEAST:
+				i = 0;
+				 do {
+					 i++;
+					 //TODO: keeps checking south even though it's out of bounds
+					 currPiece.setBackground(playerColor);
+					 currPiece = gameboard[y+i][x+i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case SOUTH:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y+i][x];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case SOUTHWEST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y+i][x-i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case WEST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y][x-i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case NORTHWEST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					currPiece = gameboard[y - i][x-i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			}
+		}
+		
+		validDirections.clear();
 	}
+	
+	public boolean isGameWon() {
+		for (int i = 0; i < SIZE; i++) {
+			for (int j = 0; j < SIZE; j++) {
+				if (isValidMove(i, j, 0) || isValidMove(i, j, 0)) return false;
+			}
+		}
+		return true;
+	}
+	
 }

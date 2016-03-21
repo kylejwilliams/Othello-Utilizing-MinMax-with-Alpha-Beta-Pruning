@@ -31,7 +31,6 @@ public class Application {
 				frame.getContentPane().add(app.getUI());
 				frame.setLocationByPlatform(true);
 				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-				//frame.setPreferredSize(new Dimension(800, 600));
 				frame.setMinimumSize(frame.getSize());
 				frame.pack();
 				
