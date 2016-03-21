@@ -72,26 +72,37 @@ public class Game {
 				gameboard[i][j].addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							if (isGameWon()) endGame();
-							else if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
+							if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
 								flipPieces(x, y, playerOne);
 								isFirstPlayersTurn = false;
-															
+								if (!hasMovesAvailable(playerOne) && 
+										!hasMovesAvailable(playerTwo))
+									playAgain();
 							}
 							else if (isValidMove(x, y, playerTwo) && !isFirstPlayersTurn) {
 								flipPieces(x, y, playerTwo);
 								isFirstPlayersTurn = true;
+								if (!hasMovesAvailable(playerOne) && 
+										!hasMovesAvailable(playerTwo))
+									playAgain();
 							}
-							else { // player who's turn it is doesn't have a move
-								if (isFirstPlayersTurn && isValidMove(x, y, playerTwo)) {
-									flipPieces(x, y, playerTwo);
-									isFirstPlayersTurn = true;
-								}
-								else if (!isFirstPlayersTurn && isValidMove(x, y, playerOne)) {
-									flipPieces(x, y, playerOne);
-									isFirstPlayersTurn = false;
-								}
-								
+							else if (!hasMovesAvailable(playerOne) && 
+									isFirstPlayersTurn &&
+									isValidMove(x, y, playerTwo)) {
+								flipPieces(x, y, playerTwo);
+								isFirstPlayersTurn = true;
+								if (!hasMovesAvailable(playerOne) && 
+										!hasMovesAvailable(playerTwo))
+									playAgain();
+							}
+							else if (!hasMovesAvailable(playerTwo) &&
+									!isFirstPlayersTurn &&
+									isValidMove(x, y, playerOne)) {
+								flipPieces(x, y, playerOne);
+								isFirstPlayersTurn = false;
+								if (!hasMovesAvailable(playerOne) && 
+										!hasMovesAvailable(playerTwo))
+									playAgain();
 							}
 						}
 				});
@@ -99,8 +110,6 @@ public class Game {
 		}
 	}
 		
-
-	
 	public void initBoard(JPanel panel) {
 		GridBagConstraints gbc;
 		Border border = new LineBorder(Color.RED, 1);
@@ -159,6 +168,14 @@ public class Game {
 				null, options, options[0]);
 		
 		return response;
+	}
+
+	public void playAgain() {
+		String[] options = new String[] { "Play Again", "Exit" };
+		int response = JOptionPane.showOptionDialog(null,	
+				getScore(), "Othello",
+				JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+				null, options, options[0]);
 	}
 	
 	public boolean isValidMove(int posX, int posY, int player) {
@@ -400,7 +417,17 @@ public class Game {
 		return isWon;
 	}
 	
-	public void endGame() {
+	public boolean hasMovesAvailable(int player) {
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				if (isValidMove(x, y, player)) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public String getScore() {
 		int playerOneScore = 0;
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
@@ -411,8 +438,10 @@ public class Game {
 		}
 		
 		if (playerOneScore > (SIZE*SIZE - playerOneScore)) 
-			System.out.println("Player 1 wins, " + playerOneScore + " to " + (SIZE*SIZE - playerOneScore));
+			return "Player 1 wins, " + playerOneScore + " to " + (SIZE*SIZE - playerOneScore);
 		else
-			System.out.println("Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore);
+			return "Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore;
 	}
+	
+	
 }
