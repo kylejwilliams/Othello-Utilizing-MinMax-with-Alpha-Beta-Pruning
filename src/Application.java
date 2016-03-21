@@ -7,12 +7,12 @@ import javax.swing.UIManager;
 
 public class Application {
 	private JPanel panel;
-	Game g = new Game();
+	static Game g;
 	
 	public Application() {
 		panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
-		
+		g = new Game(); 
 		g.initConsole(panel);
 		g.initBoard(panel);
 	}
@@ -42,7 +42,7 @@ public class Application {
 				
 				frame.setVisible(true);
 				
-				app.g.run(); 
+				g.run();
 			}
 		});
 	}

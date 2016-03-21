@@ -48,8 +48,6 @@ public class Game {
 		System.setErr(printStream);
 		
 		console = new JScrollPane(gameOutput);
-		
-		
 	}
 
 	public void run() {
@@ -72,35 +70,36 @@ public class Game {
 				int y = i;
 				int x = j;
 				gameboard[i][j].addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
-							flipPieces(x, y, playerOne);
-							isFirstPlayersTurn = false;
-						}
-						else if (isValidMove(x, y, playerTwo) && !isFirstPlayersTurn) {
-							flipPieces(x, y, playerTwo);
-							isFirstPlayersTurn = true;
-						}
-						else if (isGameWon()) {
-							int playerOneScore = 0;
-							for (int i = 0; i < SIZE; i++) {
-								for (int j = 0; j < SIZE; j++) {
-									if (gameboard[i][j].getBackground() == Color.BLACK) {
-										playerOneScore++;
-									}
-								}
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							if (isGameWon()) endGame();
+							else if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
+								flipPieces(x, y, playerOne);
+								isFirstPlayersTurn = false;
+															
 							}
-							if (playerOneScore > (SIZE*SIZE - playerOneScore)) 
-								System.out.println("Player 1 wins, " + playerOneScore + " to " + (SIZE*SIZE - playerOneScore));
-							else
-								System.out.println("Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore);
+							else if (isValidMove(x, y, playerTwo) && !isFirstPlayersTurn) {
+								flipPieces(x, y, playerTwo);
+								isFirstPlayersTurn = true;
+							}
+							else { // player who's turn it is doesn't have a move
+								if (isFirstPlayersTurn && isValidMove(x, y, playerTwo)) {
+									flipPieces(x, y, playerTwo);
+									isFirstPlayersTurn = true;
+								}
+								else if (!isFirstPlayersTurn && isValidMove(x, y, playerOne)) {
+									flipPieces(x, y, playerOne);
+									isFirstPlayersTurn = false;
+								}
+								
+							}
 						}
-					}
 				});
 			}
 		}
 	}
+		
+
 	
 	public void initBoard(JPanel panel) {
 		GridBagConstraints gbc;
@@ -294,6 +293,7 @@ public class Game {
 				}
 			}
 		}
+		
 		return validMove;
 	}
 	
@@ -322,7 +322,7 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y - i][x];
+					if (y - i > 0) currPiece = gameboard[y - i][x];
 					
 				} while (currPiece.getBackground() == opposingColor);
 				break;
@@ -331,7 +331,7 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y - i][x+i];
+					if (y - i > 0 && x+i < SIZE) currPiece = gameboard[y - i][x+i];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			case EAST:
@@ -339,16 +339,15 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y][x+i];
+					if (x+i < SIZE) currPiece = gameboard[y][x+i];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			case SOUTHEAST:
 				i = 0;
 				 do {
 					 i++;
-					 //TODO: keeps checking south even though it's out of bounds
 					 currPiece.setBackground(playerColor);
-					 currPiece = gameboard[y+i][x+i];
+					 if ((y+i) < SIZE && (x+i) < SIZE) currPiece = gameboard[y+i][x+i];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			case SOUTH:
@@ -356,7 +355,7 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y+i][x];
+					if (y+i < SIZE) currPiece = gameboard[y+i][x];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			case SOUTHWEST:
@@ -364,7 +363,7 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y+i][x-i];
+					if (y+i < SIZE && x-i > 0) currPiece = gameboard[y+i][x-i];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			case WEST:
@@ -372,7 +371,7 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y][x-i];
+					if (x-i > 0) currPiece = gameboard[y][x-i];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			case NORTHWEST:
@@ -380,7 +379,7 @@ public class Game {
 				do {
 					i++;
 					currPiece.setBackground(playerColor);
-					currPiece = gameboard[y - i][x-i];
+					if (y-i > 0 && x-i > 0) currPiece = gameboard[y - i][x-i];
 				} while (currPiece.getBackground() == opposingColor);
 				break;
 			}
@@ -388,14 +387,32 @@ public class Game {
 		
 		validDirections.clear();
 	}
-	
+
 	public boolean isGameWon() {
-		for (int i = 0; i < SIZE; i++) {
-			for (int j = 0; j < SIZE; j++) {
-				if (isValidMove(i, j, 0) || isValidMove(i, j, 0)) return false;
+		boolean isWon = true;
+		
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				if (isValidMove(x, y, 0) || isValidMove(x, y, 1)) isWon = false;
 			}
 		}
-		return true;
+		
+		return isWon;
 	}
 	
+	public void endGame() {
+		int playerOneScore = 0;
+		for (int i = 0; i < SIZE; i++) {
+			for (int j = 0; j < SIZE; j++) {
+				if (gameboard[i][j].getBackground() == Color.BLACK) {
+					playerOneScore++;
+				}
+			}
+		}
+		
+		if (playerOneScore > (SIZE*SIZE - playerOneScore)) 
+			System.out.println("Player 1 wins, " + playerOneScore + " to " + (SIZE*SIZE - playerOneScore));
+		else
+			System.out.println("Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore);
+	}
 }
