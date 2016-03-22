@@ -73,14 +73,14 @@ public class Game {
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
-								flipPieces(x, y, playerOne);
+								flipPieces(gameboard, x, y, playerOne);
 								isFirstPlayersTurn = false;
 								if (!hasMovesAvailable(playerOne) && 
 										!hasMovesAvailable(playerTwo))
 									playAgain();
 							}
 							else if (isValidMove(x, y, playerTwo) && !isFirstPlayersTurn) {
-								flipPieces(x, y, playerTwo);
+								flipPieces(gameboard, x, y, playerTwo);
 								isFirstPlayersTurn = true;
 								if (!hasMovesAvailable(playerOne) && 
 										!hasMovesAvailable(playerTwo))
@@ -89,7 +89,7 @@ public class Game {
 							else if (!hasMovesAvailable(playerOne) && 
 									isFirstPlayersTurn &&
 									isValidMove(x, y, playerTwo)) {
-								flipPieces(x, y, playerTwo);
+								flipPieces(gameboard, x, y, playerTwo);
 								isFirstPlayersTurn = true;
 								if (!hasMovesAvailable(playerOne) && 
 										!hasMovesAvailable(playerTwo))
@@ -98,7 +98,7 @@ public class Game {
 							else if (!hasMovesAvailable(playerTwo) &&
 									!isFirstPlayersTurn &&
 									isValidMove(x, y, playerOne)) {
-								flipPieces(x, y, playerOne);
+								flipPieces(gameboard, x, y, playerOne);
 								isFirstPlayersTurn = false;
 								if (!hasMovesAvailable(playerOne) && 
 										!hasMovesAvailable(playerTwo))
@@ -314,7 +314,7 @@ public class Game {
 		return validMove;
 	}
 	
-	public void flipPieces(int x, int y, int player) {
+	public void flipPieces(JButton[][] gameboard, int x, int y, int player) {
 		Color playerColor = null;
 		Color opposingColor = null;
 		
@@ -443,5 +443,24 @@ public class Game {
 			return "Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore;
 	}
 	
+	public ArrayList<JButton[][]> getPossibleMoves(JButton[][] gameboard, int player) {
+		JButton[][] gbCopy = gameboard.clone();
+		ArrayList<JButton[][]> states = new ArrayList<>();
+		
+		if (hasMovesAvailable(player)) {
+			for (int x = 0; x < SIZE; x++) {
+				for (int y = 0; y < SIZE; y++) {
+					if (isValidMove(x, y, player)) {
+						flipPieces(gbCopy, x, y, player);
+						states.add(gbCopy);
+					}
+					gbCopy = gameboard.clone();
+				}
+			}
+		}
+		
+		return states;
+		
+	}
 	
 }

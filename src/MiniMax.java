@@ -1,37 +1,89 @@
+
+import java.awt.Color;
 import javax.swing.JButton;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class MiniMax {
 	JButton[][] gb;
+	Color playerColor;
+	int player;
+	DefaultMutableTreeNode root;
+	Game game;
 	
-	public MiniMax(JButton[][] gameboard) {
-		gb = gameboard;
-	}
-	
-	// function MINIMAX-DECISION(state) returns an action
-	public void minimaxDecision(JButton[][] gameboard) {
-		// v <- MAX_VALUE(state)
-		// return the action in SUCCESSORS(state) with value v
-	}
+	public MiniMax(JButton[][] gameboard, int player) {
+		gb = gameboard.clone();
+		root = new DefaultMutableTreeNode(gb);
 		
-	
-	// function MAX-VALUE(state) returns a utility value
-	public int maxValue(JButton[][] gameboard) {
-		// if TERMINAL-TEST(state) then return UTILITY(state)
-		// v <- -inf
-		int v = Integer.MIN_VALUE;
-		
-		// for a,s in SUCCESSORS(state) do
-		int index = -1;
-		for (int i = 0; i < )
-			// v <- MAX(v, MIN-VALUE(s))
-		// return v
+		if (player == 0) {
+			playerColor = Color.BLACK;
+			player = 0;
+		}
+		else {
+			playerColor = Color.WHITE;
+			player = 0;
+		}
 	}
-
 	
-	// function MIN-VALUE(state) returns a utility value
-		// if TERMINAL-TEST(state) then return UTILITY(state)
-		// v <- inf
-		// for a,s in SUCCESSORS(state) do
-			// v <- MIN(v, MAX-VALUE(s))
-		// return v
+	// function minimax(node, depth, maximizingPlayer)
+	int minimax(DefaultMutableTreeNode node, int depth, boolean maximizingPlayer) {
+		int bestValue = 0;
+		int v = 0;
+		addChildren(node, game);
+		// if depth = 0 or node is a terminal node
+		if (depth == 0 || node.isLeaf()) {
+			// return the heuristic value of node
+			return heuristic(node);
+		}
+		// if maximizingPlayer
+		if (maximizingPlayer) {
+			// bestValue = -INF
+			bestValue = Integer.MIN_VALUE;
+			// for each child of node
+			for (int i = 0; i < node.getChildCount(); i++) {
+				DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
+				// v = minimax(child, depth - 1, FALSE)
+				v = minimax(child, depth - 1, false);
+				// bestValue = max(bestValue, v)
+				bestValue = Integer.max(bestValue, v);
+			}
+			return bestValue;
+		}
+		// else
+		else {
+			// bestValue = +INF
+			bestValue = Integer.MAX_VALUE;
+			// for each child of node
+			for (int i = 0; i < node.getChildCount(); i++) {
+				DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
+				// v = minimax(child, depth - 1, TRUE)
+				v = minimax(child, depth - 1, true);
+				// bestValue = min(bestValue, v)
+				bestValue = Integer.min(bestValue, v);
+			}
+			// return bestValue
+			return bestValue;
+		}
+	}
+	
+	int heuristic(DefaultMutableTreeNode node) {
+		JButton[][] board = (JButton[][])node.getUserObject();
+		int count = 0;
+		
+		for (int x = 0; x < board.length; x++) {
+			for (int y = 0; y < board.length; y++) {
+				if (board[y][x].getBackground() == playerColor) count++; 
+			}
+		}
+		
+		return count;
+	}
+	
+	void addChildren(DefaultMutableTreeNode parent, Game game) {
+		for (JButton[][] child : 
+			game.getPossibleMoves((JButton[][])parent.getUserObject(), player)) {
+			parent.add(new DefaultMutableTreeNode(child));
+		}
+	}
 }
+
+
