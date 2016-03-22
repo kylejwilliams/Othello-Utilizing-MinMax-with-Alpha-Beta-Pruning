@@ -176,6 +176,10 @@ public class Game {
 				getScore(), "Othello",
 				JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
 				null, options, options[0]);
+		if (response == 0) {
+			Application.startGame();
+		}
+		else System.exit(0);
 	}
 	
 	public boolean isValidMove(int posX, int posY, int player) {

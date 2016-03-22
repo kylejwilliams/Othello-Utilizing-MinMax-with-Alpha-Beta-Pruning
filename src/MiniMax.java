@@ -65,7 +65,7 @@ public class MiniMax {
 		}
 	}
 	
-	int heuristic(DefaultMutableTreeNode node) {
+	private int heuristic(DefaultMutableTreeNode node) {
 		JButton[][] board = (JButton[][])node.getUserObject();
 		int count = 0;
 		
@@ -78,7 +78,7 @@ public class MiniMax {
 		return count;
 	}
 	
-	void addChildren(DefaultMutableTreeNode parent, Game game) {
+	private void addChildren(DefaultMutableTreeNode parent, Game game) {
 		for (JButton[][] child : 
 			game.getPossibleMoves((JButton[][])parent.getUserObject(), player)) {
 			parent.add(new DefaultMutableTreeNode(child));

@@ -6,19 +6,45 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 
 public class Application {
-	private JPanel panel;
+	private static JPanel panel;
 	static Game g;
 	
 	public Application() {
+//		panel = new JPanel();
+//		panel.setLayout(new GridBagLayout());
+//		g = new Game(); 
+//		g.initConsole(panel);
+//		g.initBoard(panel);
+	}
+	
+	public JPanel getUI() {
+		return panel;
+	}
+	
+	public static void startGame() {
+		JFrame frame = new JFrame("Othello");
+		Application app = new Application();
 		panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		g = new Game(); 
 		g.initConsole(panel);
 		g.initBoard(panel);
-	}
-	
-	public JPanel getUI() {
-		return panel;
+		
+		frame.getContentPane().add(app.getUI());
+		frame.setLocationByPlatform(true);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setMinimumSize(frame.getSize());
+		frame.pack();
+		
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		frame.setVisible(true);
+		
+		g.run();
 	}
 	
 	public static void main(String[] args) {
@@ -26,23 +52,7 @@ public class Application {
 			
 			@Override
 			public void run() {
-				JFrame frame = new JFrame("Othello");
-				Application app = new Application();
-				frame.getContentPane().add(app.getUI());
-				frame.setLocationByPlatform(true);
-				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-				frame.setMinimumSize(frame.getSize());
-				frame.pack();
-				
-				try {
-					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				
-				frame.setVisible(true);
-				
-				g.run();
+				startGame();
 			}
 		});
 	}
