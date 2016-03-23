@@ -22,7 +22,7 @@ public class Game {
 	public JTextField gameInput;
 	public JScrollPane console;
 	public static Color forestGreen;
-	public boolean isPlayersTurn;
+	public static boolean isPlayersTurn;
 	private static final int SIZE = 6; // 6x6 board
 	public static ArrayList<Cardinals> validDirections;
 	public int player;
@@ -121,9 +121,10 @@ public class Game {
 
 	}
 		
-	public void initBoard(JPanel panel) {
+	public void initBoard(JPanel panel, JButton[][] gameboard) {
 		GridBagConstraints gbc;
 		Border border = new LineBorder(Color.RED, 1);
+		
 		
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
@@ -131,6 +132,7 @@ public class Game {
 				int y = i;
 				
 				gameboard[y][x] = new JButton();
+				gameboard[y][x].setOpaque(true);
 				gameboard[y][x].setBackground(forestGreen);
 				gameboard[y][x].setBorder(border);
 				gameboard[y][x].setPreferredSize(new Dimension(100, 100));

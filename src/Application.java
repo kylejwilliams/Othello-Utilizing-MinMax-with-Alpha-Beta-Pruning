@@ -24,7 +24,7 @@ public class Application {
 		
 		g = new Game(); 
 		g.initConsole(panel);
-		g.initBoard(panel);
+		g.initBoard(panel, Game.gameboard);
 		
 		frame.getContentPane().add(getUI());
 		frame.setLocationByPlatform(true);

@@ -1,7 +1,10 @@
 
 import java.awt.Color;
+import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 public class MiniMax {
 	private int SIZE = 6;
@@ -25,59 +28,28 @@ public class MiniMax {
 			playerColor = Color.BLACK;
 		}
 	}
-	
-//	public int minimax(JButton[][] gameboard, int depth, boolean maximizingPlayer) {
-//		DefaultMutableTreeNode nodeCopy = new DefaultMutableTreeNode(gameboard.clone());
-//		int bestValue = 0;
-//		int v = 0;
-//
-//		if (depth == 0 || nodeCopy.isLeaf()) {
-//			bestAction = (JButton[][]) nodeCopy.getUserObject();
-//			return heuristic(nodeCopy);
-//		}
-//		if (maximizingPlayer) {
-//			bestValue = Integer.MIN_VALUE;
-//			addChildren(nodeCopy, player);
-//			for (int i = 0; i < nodeCopy.getChildCount(); i++) {
-//				JButton[][] child = (JButton[][]) ((DefaultMutableTreeNode)nodeCopy.getChildAt(i)).getUserObject();
-//				v = minimax(child, depth - 1, false);
-//				bestValue = Integer.max(bestValue, v);
-//			}
-//			bestAction = (JButton[][]) nodeCopy.getUserObject();
-//			return bestValue;
-//		}
-//		else {
-//			bestValue = Integer.MAX_VALUE;
-//			addChildren(nodeCopy, opposingPlayer);
-//			for (int i = 0; i < nodeCopy.getChildCount(); i++) {
-//				JButton[][] child = (JButton[][]) ((DefaultMutableTreeNode)nodeCopy.getChildAt(i)).getUserObject();
-//				v = minimax(child, depth - 1, true);
-//				bestValue = Integer.min(bestValue, v);
-//			}
-//			bestAction = (JButton[][]) nodeCopy.getUserObject();
-//			return bestValue;
-//		}
-//	}
-	
-	public JButton[][] minimax(JButton[][] gameboard, int depth, boolean maximizingPlayer) {
-		DefaultMutableTreeNode nodeCopy = new DefaultMutableTreeNode(gameboard.clone());
-		JButton[][] bestMove = new JButton[SIZE][SIZE];
+
+	public DefaultMutableTreeNode minimax(JButton[][] gameboard, int depth, boolean maximizingPlayer) {
+		DefaultMutableTreeNode nodeCopy = new DefaultMutableTreeNode(gameboard );
+		DefaultMutableTreeNode bestMove = new DefaultMutableTreeNode();
 		int bestValue = 0;
-		JButton[][] v;
+		DefaultMutableTreeNode v;
 		
 		if (maximizingPlayer) addChildren(nodeCopy, player);
 		else addChildren(nodeCopy, opposingPlayer);
 		
 		if (depth == 0 || nodeCopy.isLeaf()) {
-			return (JButton[][]) nodeCopy.getUserObject();
+			return nodeCopy;
 		}
 		if (maximizingPlayer) {
 			bestValue = Integer.MIN_VALUE;
 			for (int i = 0; i < nodeCopy.getChildCount(); i++) {
-				JButton[][] child = (JButton[][]) ((DefaultMutableTreeNode)nodeCopy.getChildAt(i)).getUserObject();
-				v = minimax(child, depth - 1, false);
-				if (heuristic(new DefaultMutableTreeNode(v)) > bestValue)
-						bestMove = v;
+				DefaultMutableTreeNode child = (DefaultMutableTreeNode)nodeCopy.getChildAt(i);
+				v = minimax((JButton[][])child.getUserObject(), depth - 1, false);
+				if (heuristic(new DefaultMutableTreeNode(v)) > bestValue) {
+					bestMove = v;
+				}
+						
 			}
 			return bestMove;
 		}
@@ -96,25 +68,16 @@ public class MiniMax {
 	
 	public JButton[][] iterativeDeepeningMinimax(JButton[][] gameboard) {
 		int depth = 0;
-		JButton[][] move = new JButton[SIZE][SIZE];
+		DefaultMutableTreeNode node;
 		
-		while (true) {
-			depth++;
+		//while (true) {
+			depth = 1;
 			
-			move = minimax(gameboard, depth, true);
+			node = minimax(gameboard, depth, true);
 			
-			return move;
-		}
+			return getAIMove(node);
+		//}
 	}
-	
-//	public void makeMinMaxMove(JButton[][] gameboard) {
-//		for (int y = 0; y < SIZE; y++) {
-//			for (int x = 0; x < SIZE; x++) {
-//				gameboard[y][x].setBackground(bestAction[y][x].getBackground());
-//			}
-//		}
-//		
-//	}
 	
 	private static int heuristic(DefaultMutableTreeNode node) {
 		JButton[][] board = (JButton[][]) node.getUserObject();
@@ -136,5 +99,14 @@ public class MiniMax {
 			Game.getPossibleMoves(p, player)) {
 			parent.add(new DefaultMutableTreeNode(child));
 		}
+	}
+
+	private static JButton[][] getAIMove(DefaultMutableTreeNode node) {
+		
+		DefaultMutableTreeNode parent = null;
+		
+		while (node.getParent() != null) parent = (DefaultMutableTreeNode) node.getParent();
+		
+		return (JButton[][])parent.getUserObject();
 	}
 }
