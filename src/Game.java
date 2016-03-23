@@ -17,16 +17,17 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 public class Game {
-	public JButton[][] gameboard;
+	public static JButton[][] gameboard;
 	public JTextArea gameOutput;
 	public JTextField gameInput;
 	public JScrollPane console;
-	public Color forestGreen;
-	public boolean isFirstPlayersTurn;
-	private final int SIZE = 6; // 6x6 board
-	public ArrayList<Cardinals> validDirections;
-	public int playerOne;
-	public int playerTwo;
+	public static Color forestGreen;
+	public boolean isPlayersTurn;
+	private static final int SIZE = 6; // 6x6 board
+	public static ArrayList<Cardinals> validDirections;
+	public int player;
+	public int ai;
+	MiniMax minimax;
 	
 	public enum Cardinals {
 		NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST
@@ -38,7 +39,7 @@ public class Game {
 		gameOutput.setEditable(false);
 		validDirections = new ArrayList<>();
 		
-		isFirstPlayersTurn = true;
+		isPlayersTurn = true;
 		forestGreen = new Color(34, 139, 34);
 		
 		PrintStream printStream = new PrintStream(
@@ -48,6 +49,7 @@ public class Game {
 		System.setErr(printStream);
 		
 		console = new JScrollPane(gameOutput);
+		
 	}
 
 	public void run() {
@@ -57,13 +59,17 @@ public class Game {
 				+ "the squares");
 
 		if (getPlayOrder() == 0) {
-			playerOne = 0;
-			playerTwo = 1;
+			player = 0;
+			ai = 1;
+			isPlayersTurn = true;
 		}
 		else {
-			playerOne = 1;
-			playerTwo = 0;
+			player = 1;
+			ai = 0;
+			isPlayersTurn = false;
 		}
+		
+		minimax = new MiniMax(ai);
 		
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
@@ -72,42 +78,47 @@ public class Game {
 				gameboard[i][j].addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							if (isValidMove(x, y, playerOne) && isFirstPlayersTurn) {
-								flipPieces(gameboard, x, y, playerOne);
-								isFirstPlayersTurn = false;
-								if (!hasMovesAvailable(playerOne) && 
-										!hasMovesAvailable(playerTwo))
+							if (isValidMove(x, y, player) && isPlayersTurn) {
+								flipPieces(gameboard, x, y, player);
+								isPlayersTurn = false;
+								if (!hasMovesAvailable(player) && !hasMovesAvailable(ai))
 									playAgain();
+								if (hasMovesAvailable(ai) && !isPlayersTurn) {
+									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
+									isPlayersTurn = true;
+									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
+								}
+								else if (hasMovesAvailable(ai) && !hasMovesAvailable(player) && isPlayersTurn) {
+									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
+									isPlayersTurn = true;
+									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
+								}
 							}
-							else if (isValidMove(x, y, playerTwo) && !isFirstPlayersTurn) {
-								flipPieces(gameboard, x, y, playerTwo);
-								isFirstPlayersTurn = true;
-								if (!hasMovesAvailable(playerOne) && 
-										!hasMovesAvailable(playerTwo))
+							else if (!hasMovesAvailable(ai) &&
+									!isPlayersTurn &&
+									isValidMove(x, y, player)) {
+								flipPieces(gameboard, x, y, player);
+								isPlayersTurn = false;
+								if (!hasMovesAvailable(player) && !hasMovesAvailable(ai))
 									playAgain();
-							}
-							else if (!hasMovesAvailable(playerOne) && 
-									isFirstPlayersTurn &&
-									isValidMove(x, y, playerTwo)) {
-								flipPieces(gameboard, x, y, playerTwo);
-								isFirstPlayersTurn = true;
-								if (!hasMovesAvailable(playerOne) && 
-										!hasMovesAvailable(playerTwo))
-									playAgain();
-							}
-							else if (!hasMovesAvailable(playerTwo) &&
-									!isFirstPlayersTurn &&
-									isValidMove(x, y, playerOne)) {
-								flipPieces(gameboard, x, y, playerOne);
-								isFirstPlayersTurn = false;
-								if (!hasMovesAvailable(playerOne) && 
-										!hasMovesAvailable(playerTwo))
-									playAgain();
+								if (hasMovesAvailable(ai) && !isPlayersTurn) {
+									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
+									isPlayersTurn = true;
+									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
+								}
+								else if (hasMovesAvailable(ai) && !hasMovesAvailable(player) && isPlayersTurn) {
+									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
+									isPlayersTurn = true;
+									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
+								}
 							}
 						}
 				});
+				
 			}
 		}
+		
+
 	}
 		
 	public void initBoard(JPanel panel) {
@@ -125,7 +136,6 @@ public class Game {
 				gameboard[y][x].setPreferredSize(new Dimension(100, 100));
 				gbc = new GridBagConstraints(); 
 				gbc.fill = GridBagConstraints.BOTH;
-				//gbc.gridwidth = GridBagConstraints.RELATIVE;
 				gbc.gridx = j;
 				gbc.gridy = i + 1;
 				gbc.weightx = 1.0;
@@ -182,7 +192,7 @@ public class Game {
 		else System.exit(0);
 	}
 	
-	public boolean isValidMove(int posX, int posY, int player) {
+	public static boolean isValidMove(int posX, int posY, int player) {
 		Color playerColor;
 		Color opposingColor;
 		boolean validMove = false;
@@ -318,7 +328,7 @@ public class Game {
 		return validMove;
 	}
 	
-	public void flipPieces(JButton[][] gameboard, int x, int y, int player) {
+	public static void flipPieces(JButton[][] gameboard, int x, int y, int player) {
 		Color playerColor = null;
 		Color opposingColor = null;
 		
@@ -421,7 +431,7 @@ public class Game {
 		return isWon;
 	}
 	
-	public boolean hasMovesAvailable(int player) {
+	public static boolean hasMovesAvailable(int player) {
 		for (int x = 0; x < SIZE; x++) {
 			for (int y = 0; y < SIZE; y++) {
 				if (isValidMove(x, y, player)) return true;
@@ -447,7 +457,7 @@ public class Game {
 			return "Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore;
 	}
 	
-	public ArrayList<JButton[][]> getPossibleMoves(JButton[][] gameboard, int player) {
+	public static ArrayList<JButton[][]> getPossibleMoves(JButton[][] gameboard, int player) {
 		JButton[][] gbCopy = gameboard.clone();
 		ArrayList<JButton[][]> states = new ArrayList<>();
 		

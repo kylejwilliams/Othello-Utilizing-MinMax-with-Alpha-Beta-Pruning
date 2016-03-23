@@ -8,29 +8,25 @@ import javax.swing.UIManager;
 public class Application {
 	private static JPanel panel;
 	static Game g;
+	static JFrame frame;
 	
-	public Application() {
-//		panel = new JPanel();
-//		panel.setLayout(new GridBagLayout());
-//		g = new Game(); 
-//		g.initConsole(panel);
-//		g.initBoard(panel);
+	public Application() {	
 	}
 	
-	public JPanel getUI() {
+	public static JPanel getUI() {
 		return panel;
 	}
 	
 	public static void startGame() {
-		JFrame frame = new JFrame("Othello");
-		Application app = new Application();
 		panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
+		frame = new JFrame("Othello");
+		
 		g = new Game(); 
 		g.initConsole(panel);
 		g.initBoard(panel);
 		
-		frame.getContentPane().add(app.getUI());
+		frame.getContentPane().add(getUI());
 		frame.setLocationByPlatform(true);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setMinimumSize(frame.getSize());
@@ -47,12 +43,18 @@ public class Application {
 		g.run();
 	}
 	
+	public static void restart() {
+		
+	}
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			
 			@Override
 			public void run() {
 				startGame();
+				
+				
 			}
 		});
 	}
