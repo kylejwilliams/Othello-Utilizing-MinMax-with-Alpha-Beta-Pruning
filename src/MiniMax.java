@@ -18,12 +18,17 @@ class CoordinatesAndScores {
 public class MiniMax {
 	ArrayList<Point> availablePoints;
 	ArrayList<CoordinatesAndScores> childrensScores;
-	JButton[][] tmpGameboard;
+	JButton[][] tmpGameboard = Game.gameboard.clone();
 	int originalPlayOrder;
+	int opposingPlayOrder;
+	boolean outOfTime;
+	int iter;
 	
 	public void iterativeDeepeningMiniMax(int playerOrder) {
 		int depth = 0;
 		originalPlayOrder = playerOrder;
+		if (originalPlayOrder == 0) opposingPlayOrder = 1;
+		else opposingPlayOrder = 0;
 		
 		long startTime = System.currentTimeMillis();
 		long waitTime = 5000;
@@ -31,20 +36,20 @@ public class MiniMax {
 		
 		while (System.currentTimeMillis() < endTime) {
 			depth++;
-			childrensScores = new ArrayList<>();
-			minimax(depth, playerOrder, endTime);
+			minimax(depth, originalPlayOrder, endTime);
 		}
 	}
 
 	private int minimax(int depth, int playerOrder, long endTime) {
-		if (System.currentTimeMillis() > endTime) return 0;
+		if (System.currentTimeMillis() > endTime) outOfTime = true;
+		//if (outOfTime) break;
 		if (Game.hasBlackWon() && originalPlayOrder == 0) return Integer.MAX_VALUE;
 		if (Game.hasWhiteWon() && originalPlayOrder == 1) return Integer.MAX_VALUE;
 		if (Game.hasBlackWon() && originalPlayOrder == 1) return Integer.MIN_VALUE;
 		if (Game.hasWhiteWon() && originalPlayOrder == 0) return Integer.MIN_VALUE;
 		
 		availablePoints = Game.getPossibleMoves(playerOrder);
-		tmpGameboard = Game.gameboard.clone(); // so that we can reset the gameboard at the end
+		//tmpGameboard = Game.gameboard.clone(); // so that we can reset the gameboard at the end
 		int curScore;
 		
 		if (availablePoints.isEmpty()) return 0;
@@ -53,19 +58,33 @@ public class MiniMax {
 		
 		for (Point curMove : availablePoints) {
 			// AI's turn
-			if (playerOrder == 0) {
+			if (playerOrder == originalPlayOrder) {
 				Game.flipPieces(tmpGameboard, curMove.x, curMove.y, playerOrder);
+				
+				for (int i = 0; i < tmpGameboard.length; i++) {
+					for (int j = 0; j < tmpGameboard.length; j++) {
+						System.out.println("(" + j + ", " + i + "): " + tmpGameboard[i][j].getBackground().toString());
+					}
+				}
 				curScore = minimax(depth + 1, 1, endTime);
 				scores.add(curScore);
 				
 				if (depth == 0) childrensScores.add(new CoordinatesAndScores(curScore, curMove));
 			}
 			// human turn
-			else if (playerOrder == 1) {
-				Game.flipPieces(tmpGameboard, curMove.x, curMove.y, playerOrder);
+			else {
+				Game.flipPieces(tmpGameboard, curMove.x, curMove.y, opposingPlayOrder);
+				for (int i = 0; i < tmpGameboard.length; i++) {
+					for (int j = 0; j < tmpGameboard.length; j++) {
+						System.out.println("(" + j + ", " + i + "): " + tmpGameboard[i][j].getBackground().toString());
+					}
 				scores.add(minimax(depth + 1, 0, endTime));
 			}
 			tmpGameboard = new JButton[6][6]; // need to reset the board to previous state
+			for (int i = 0; i < tmpGameboard.length; i++) {
+				for (int j = 0; j < tmpGameboard.length; j++) {
+					System.out.println("(" + j + ", " + i + "): " + tmpGameboard[i][j].getBackground().toString());
+				}
 		}
 		if (playerOrder == 0) return Max(scores);
 		else return Min(scores);
