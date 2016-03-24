@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.PrintStream;
@@ -38,6 +39,7 @@ public class Game {
 		gameOutput = new JTextArea(2, 50);
 		gameOutput.setEditable(false);
 		validDirections = new ArrayList<>();
+		minimax = new MiniMax();
 		
 		isPlayersTurn = true;
 		forestGreen = new Color(34, 139, 34);
@@ -53,7 +55,7 @@ public class Game {
 	}
 
 	public void run() {
-		
+
 		System.out.println("OTHELLO");
 		System.out.println("On your turn, make a move by clicking on one of "
 				+ "the squares");
@@ -62,65 +64,52 @@ public class Game {
 			player = 0;
 			ai = 1;
 			isPlayersTurn = true;
-		}
-		else {
+		} else {
 			player = 1;
 			ai = 0;
 			isPlayersTurn = false;
 		}
-		
-		minimax = new MiniMax(ai);
-		
+
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
 				int y = i;
 				int x = j;
 				gameboard[i][j].addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							if (isValidMove(x, y, player) && isPlayersTurn) {
-								flipPieces(gameboard, x, y, player);
-								isPlayersTurn = false;
-								if (!hasMovesAvailable(player) && !hasMovesAvailable(ai))
-									playAgain();
-								if (hasMovesAvailable(ai) && !isPlayersTurn) {
-									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
-									isPlayersTurn = true;
-									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
-								}
-								else if (hasMovesAvailable(ai) && !hasMovesAvailable(player) && isPlayersTurn) {
-									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
-									isPlayersTurn = true;
-									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
-								}
-							}
-							else if (!hasMovesAvailable(ai) &&
-									!isPlayersTurn &&
-									isValidMove(x, y, player)) {
-								flipPieces(gameboard, x, y, player);
-								isPlayersTurn = false;
-								if (!hasMovesAvailable(player) && !hasMovesAvailable(ai))
-									playAgain();
-								if (hasMovesAvailable(ai) && !isPlayersTurn) {
-									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
-									isPlayersTurn = true;
-									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
-								}
-								else if (hasMovesAvailable(ai) && !hasMovesAvailable(player) && isPlayersTurn) {
-									gameboard = minimax.iterativeDeepeningMinimax(gameboard);
-									isPlayersTurn = true;
-									if (!hasMovesAvailable(player) && !hasMovesAvailable(ai)) playAgain();
-								}
-							}
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if (isValidMove(x, y, player) && isPlayerTurn()) {
+							flipPieces(gameboard, x, y, player);
+							isPlayersTurn = false;
 						}
+					}
 				});
-				
 			}
 		}
 		
-
+		while (!isGameWon()) {
+			if (!Game.isPlayersTurn && !isGameWon()) {
+				aiTurn();
+			}
+		}
 	}
-		
+
+	public void aiTurn() {
+			minimax.iterativeDeepeningMiniMax(ai);
+			flipPieces(gameboard, minimax.bestMoveCoordinates().x, minimax.bestMoveCoordinates().y, ai);
+			isPlayersTurn = true;
+	}
+	
+	public boolean isPlayerTurn() {
+		if (isPlayersTurn && hasMovesAvailable(player)) return true;
+		else if (isPlayersTurn && !hasMovesAvailable(player) && hasMovesAvailable(ai)) return false;
+		else if (!isPlayersTurn && hasMovesAvailable(ai)) return false;
+		else if (!isPlayersTurn && !hasMovesAvailable(ai) && hasMovesAvailable(player)) return true;
+		else  {
+			playAgain(); 
+			return true;
+		}
+	}
+	
 	public void initBoard(JPanel panel, JButton[][] gameboard) {
 		GridBagConstraints gbc;
 		Border border = new LineBorder(Color.RED, 1);
@@ -420,8 +409,100 @@ public class Game {
 		
 		validDirections.clear();
 	}
+	
+	public ArrayList<JButton[][]> getFlippedPieces(JButton[][] gameboard, int x, int y, int player) {
+		Color playerColor = null;
+		Color opposingColor = null;
+		
+		if (player == 0) {
+			playerColor = Color.BLACK; 
+			opposingColor = Color.WHITE;
+		}
+		if (player == 1) {
+			playerColor = Color.WHITE; 
+			opposingColor = Color.BLACK;
+		}
+		
+		JButton currPiece;
+		ArrayList<JButton[][]> flippedPieces = new ArrayList<>();
+		
+		for (Cardinals dir : validDirections) {
+			currPiece = gameboard[y][x];
+			currPiece.setBackground(playerColor);
+			int i = 0;
+			switch (dir) {
+			case NORTH:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (y - i > 0) currPiece = gameboard[y - i][x];
+					
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case NORTHEAST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (y - i > 0 && x+i < SIZE) currPiece = gameboard[y - i][x+i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case EAST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (x+i < SIZE) currPiece = gameboard[y][x+i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case SOUTHEAST:
+				i = 0;
+				 do {
+					 i++;
+					 currPiece.setBackground(playerColor);
+					 if ((y+i) < SIZE && (x+i) < SIZE) currPiece = gameboard[y+i][x+i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case SOUTH:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (y+i < SIZE) currPiece = gameboard[y+i][x];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case SOUTHWEST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (y+i < SIZE && x-i > 0) currPiece = gameboard[y+i][x-i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case WEST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (x-i > 0) currPiece = gameboard[y][x-i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			case NORTHWEST:
+				i = 0;
+				do {
+					i++;
+					currPiece.setBackground(playerColor);
+					if (y-i > 0 && x-i > 0) currPiece = gameboard[y - i][x-i];
+				} while (currPiece.getBackground() == opposingColor);
+				break;
+			}
+		}
+		
+		return flippedPieces;
+	}
 
-	public boolean isGameWon() {
+	public static boolean isGameWon() {
 		boolean isWon = true;
 		
 		for (int x = 0; x < SIZE; x++) {
@@ -444,39 +525,53 @@ public class Game {
 	}
 	
 	public String getScore() {
-		int playerOneScore = 0;
+		if (heuristic(0) > heuristic(1)) 
+			return "Player 1 wins, " + heuristic(0) + " to " + heuristic(1);
+		else
+			return "Player 2 wins, " + heuristic(1) + " to " + heuristic(0);
+	}
+	
+	public static int heuristic(int player) {
+		Color c = forestGreen;
+		int score = 0;
+		
+		if (player == 0) c = Color.BLACK;
+		else if (player == 1) c = Color.WHITE;
+		
 		for (int i = 0; i < SIZE; i++) {
 			for (int j = 0; j < SIZE; j++) {
-				if (gameboard[i][j].getBackground() == Color.BLACK) {
-					playerOneScore++;
-				}
+				if (gameboard[i][j].getBackground() == c) score++;
 			}
 		}
 		
-		if (playerOneScore > (SIZE*SIZE - playerOneScore)) 
-			return "Player 1 wins, " + playerOneScore + " to " + (SIZE*SIZE - playerOneScore);
-		else
-			return "Player 2 wins, " + (SIZE*SIZE - playerOneScore) + " to " + playerOneScore;
+		return score;
 	}
 	
-	public static ArrayList<JButton[][]> getPossibleMoves(JButton[][] gameboard, int player) {
-		JButton[][] gbCopy = gameboard.clone();
-		ArrayList<JButton[][]> states = new ArrayList<>();
+	public static ArrayList<Point> getPossibleMoves(int player) {
+		ArrayList<Point> moves = new ArrayList<>();
 		
 		if (hasMovesAvailable(player)) {
 			for (int x = 0; x < SIZE; x++) {
 				for (int y = 0; y < SIZE; y++) {
 					if (isValidMove(x, y, player)) {
-						flipPieces(gbCopy, x, y, player);
-						states.add(gbCopy);
+						moves.add(new Point(x, y));
 					}
-					gbCopy = gameboard.clone();
 				}
 			}
 		}
 		
-		return states;
+		return moves;
 		
+	}
+	
+	public static boolean hasBlackWon() {
+		if (isGameWon() && heuristic(0) > heuristic(1)) return true;
+		else return false;
+	}
+	
+	public static boolean hasWhiteWon() {
+		if (isGameWon() && heuristic(1) > heuristic(0)) return true;
+		else return false;
 	}
 	
 }

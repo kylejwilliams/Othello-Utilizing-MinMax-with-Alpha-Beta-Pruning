@@ -1,112 +1,112 @@
-
-import java.awt.Color;
+import java.awt.Point;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
+
+
+
+class CoordinatesAndScores {
+	Point coordinate;
+	int score;
+	
+	CoordinatesAndScores(int score, Point coordinate) {
+		this.score = score;
+		this.coordinate = coordinate;
+	}
+}
 
 public class MiniMax {
-	private int SIZE = 6;
-	static Color playerColor;
-	static Color opposingColor;
-	public static int player;
-	public static int opposingPlayer;
-	DefaultMutableTreeNode root;
+	ArrayList<Point> availablePoints;
+	ArrayList<CoordinatesAndScores> childrensScores;
+	JButton[][] tmpGameboard;
+	int originalPlayOrder;
 	
-	public MiniMax(int player) {
-		if (player == 0) {
-			MiniMax.player = 0;
-			playerColor = Color.BLACK;
-			opposingPlayer = 1;
-			opposingColor = Color.WHITE;
-		}
-		else {
-			MiniMax.player = 1;
-			playerColor = Color.WHITE;
-			opposingPlayer = 0;
-			playerColor = Color.BLACK;
-		}
-	}
-
-	public DefaultMutableTreeNode minimax(JButton[][] gameboard, int depth, boolean maximizingPlayer) {
-		DefaultMutableTreeNode nodeCopy = new DefaultMutableTreeNode(gameboard );
-		DefaultMutableTreeNode bestMove = new DefaultMutableTreeNode();
-		int bestValue = 0;
-		DefaultMutableTreeNode v;
-		
-		if (maximizingPlayer) addChildren(nodeCopy, player);
-		else addChildren(nodeCopy, opposingPlayer);
-		
-		if (depth == 0 || nodeCopy.isLeaf()) {
-			return nodeCopy;
-		}
-		if (maximizingPlayer) {
-			bestValue = Integer.MIN_VALUE;
-			for (int i = 0; i < nodeCopy.getChildCount(); i++) {
-				DefaultMutableTreeNode child = (DefaultMutableTreeNode)nodeCopy.getChildAt(i);
-				v = minimax((JButton[][])child.getUserObject(), depth - 1, false);
-				if (heuristic(new DefaultMutableTreeNode(v)) > bestValue) {
-					bestMove = v;
-				}
-						
-			}
-			return bestMove;
-		}
-		else {
-			bestValue = Integer.MAX_VALUE;
-			for (int i = 0; i < nodeCopy.getChildCount(); i++) {
-				JButton[][] child = (JButton[][]) ((DefaultMutableTreeNode)nodeCopy.getChildAt(i)).getUserObject();
-				v = minimax(child, depth - 1, true);
-				if (heuristic(new DefaultMutableTreeNode(v)) < bestValue) {
-					bestMove = v;
-				}
-			}
-			return bestMove;
-		}
-	}
-	
-	public JButton[][] iterativeDeepeningMinimax(JButton[][] gameboard) {
+	public void iterativeDeepeningMiniMax(int playerOrder) {
 		int depth = 0;
-		DefaultMutableTreeNode node;
+		originalPlayOrder = playerOrder;
 		
-		//while (true) {
-			depth = 1;
-			
-			node = minimax(gameboard, depth, true);
-			
-			return getAIMove(node);
-		//}
-	}
-	
-	private static int heuristic(DefaultMutableTreeNode node) {
-		JButton[][] board = (JButton[][]) node.getUserObject();
-		int count = 0;
+		long startTime = System.currentTimeMillis();
+		long waitTime = 5000;
+		long endTime = startTime + waitTime;
 		
-		for (int x = 0; x < board.length; x++) {
-			for (int y = 0; y < board.length; y++) {
-				if (board[y][x].getBackground() == playerColor) count++; 
-			}
-		}
-		
-		return count;
-	}
-	
-	private static void addChildren(DefaultMutableTreeNode parent, int player) {
-		JButton[][] p = (JButton[][])parent.getUserObject();
-		
-		for (JButton[][] child : 
-			Game.getPossibleMoves(p, player)) {
-			parent.add(new DefaultMutableTreeNode(child));
+		while (System.currentTimeMillis() < endTime) {
+			depth++;
+			childrensScores = new ArrayList<>();
+			minimax(depth, playerOrder, endTime);
 		}
 	}
 
-	private static JButton[][] getAIMove(DefaultMutableTreeNode node) {
+	private int minimax(int depth, int playerOrder, long endTime) {
+		if (System.currentTimeMillis() > endTime) return 0;
+		if (Game.hasBlackWon() && originalPlayOrder == 0) return Integer.MAX_VALUE;
+		if (Game.hasWhiteWon() && originalPlayOrder == 1) return Integer.MAX_VALUE;
+		if (Game.hasBlackWon() && originalPlayOrder == 1) return Integer.MIN_VALUE;
+		if (Game.hasWhiteWon() && originalPlayOrder == 0) return Integer.MIN_VALUE;
 		
-		DefaultMutableTreeNode parent = null;
+		availablePoints = Game.getPossibleMoves(playerOrder);
+		tmpGameboard = Game.gameboard.clone(); // so that we can reset the gameboard at the end
+		int curScore;
 		
-		while (node.getParent() != null) parent = (DefaultMutableTreeNode) node.getParent();
+		if (availablePoints.isEmpty()) return 0;
 		
-		return (JButton[][])parent.getUserObject();
+		ArrayList<Integer> scores = new ArrayList<>();
+		
+		for (Point curMove : availablePoints) {
+			// AI's turn
+			if (playerOrder == 0) {
+				Game.flipPieces(tmpGameboard, curMove.x, curMove.y, playerOrder);
+				curScore = minimax(depth + 1, 1, endTime);
+				scores.add(curScore);
+				
+				if (depth == 0) childrensScores.add(new CoordinatesAndScores(curScore, curMove));
+			}
+			// human turn
+			else if (playerOrder == 1) {
+				Game.flipPieces(tmpGameboard, curMove.x, curMove.y, playerOrder);
+				scores.add(minimax(depth + 1, 0, endTime));
+			}
+			tmpGameboard = new JButton[6][6]; // need to reset the board to previous state
+		}
+		if (playerOrder == 0) return Max(scores);
+		else return Min(scores);
+		
+	}
+	
+	private int Min(ArrayList<Integer> scores) {
+		int min = Integer.MAX_VALUE;
+		int index = -1;
+		
+		for (Integer i : scores) {
+			if (i < min) {
+				min = i;
+				//index = scores.indexOf(i);
+			}
+		}
+		return min;
+	}
+	
+	private int Max(ArrayList<Integer> scores) {
+		int max = Integer.MIN_VALUE;
+		int index = -1;
+		
+		for (Integer i : scores) {
+			if (i > max) {
+				max = i;
+				//index = scores.indexOf(i);
+			}
+		}
+		return max;
+	}
+	
+	public Point bestMoveCoordinates() {
+		int max = Integer.MIN_VALUE;
+		int best = -1;
+		
+		for (CoordinatesAndScores cas : childrensScores) {
+			if (max < cas.score) max = cas.score;
+			best = childrensScores.indexOf(max);
+		}
+		
+		return childrensScores.get(best).coordinate;
 	}
 }

@@ -53,10 +53,7 @@ public class Application {
 			@Override
 			public void run() {
 				startGame();
-				
-				
 			}
 		});
 	}
-
 }
